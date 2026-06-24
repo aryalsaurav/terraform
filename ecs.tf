@@ -12,7 +12,7 @@ resource "aws_ecs_cluster" "main" {
   tags = merge(
     local.common_tags,
     {
-      Name = "${local.prefix}-alb"
+      Name = "${local.prefix}-cluster"
     }
   )
 }
@@ -60,8 +60,6 @@ resource "aws_ecs_service" "server" {
 
   desired_count = 2
 
-  launch_type = "EC2"
-
   network_configuration {
     subnets = [
       aws_subnet.private["private_a"].id,
@@ -77,6 +75,11 @@ resource "aws_ecs_service" "server" {
     target_group_arn = aws_alb_target_group.server.arn
     container_name   = "server"
     container_port   = 8000
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.main.name
+    weight = 1
   }
 
   depends_on = [aws_lb_listener.http]
