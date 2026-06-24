@@ -35,6 +35,29 @@ resource "aws_security_group" "db" {
   )
 }
 
+resource "aws_security_group" "ecs_instance" {
+  name        = "${local.prefix}-ecs-instance-sg"
+  description = "Ecs instance sg"
+  vpc_id      = aws_vpc.main.id
+
+  tags = merge(
+    local.common_tags,
+    {
+      Name = "${local.prefix}-ecs-instance-sg"
+    }
+  )
+
+}
+
+resource "aws_vpc_security_group_egress_rule" "name" {
+  security_group_id = aws_security_group.ecs_instance.id
+
+  ip_protocol = "-1"
+
+  cidr_ipv4 = "0.0.0.0/0"
+
+}
+
 resource "aws_vpc_security_group_ingress_rule" "alb_http" {
   security_group_id = aws_security_group.alb.id
 
