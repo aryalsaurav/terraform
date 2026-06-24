@@ -1,12 +1,17 @@
 #!/bin/bash
 
-dnf update -y
-dnf install docker -y
+exec > >(tee /var/log/user-data.log)
+exec 2>&1
 
+dnf install docker -y
 systemctl enable --now docker
 
-dnf install ecs-init
 
-echo "ECS_CLUSTER=$cluster_name" >> /etc/ecs/ecs.config
+dnf install amazon-ssm-agent -y
+systemctl enable --now amazon-ssm-agent
 
-systemctl enable --now --no-block esc.service
+mkdir -p /etc/ecs
+echo "ECS_CLUSTER=${cluster_name}" >> /etc/ecs/ecs.config
+
+dnf install ecs-init -y
+systemctl enable --now --no-block ecs

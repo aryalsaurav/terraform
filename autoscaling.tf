@@ -20,4 +20,6 @@ resource "aws_autoscaling_group" "ecs" {
     value               = "${local.prefix}-ecs-instance"
     propagate_at_launch = true
   }
+
+  depends_on = [aws_nat_gateway.main, aws_route_table_association.private]
 }
