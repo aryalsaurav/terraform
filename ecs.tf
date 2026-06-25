@@ -24,26 +24,20 @@ resource "aws_ecs_task_definition" "web" {
   requires_compatibilities = ["EC2"]
 
   cpu    = 512
-  memory = 1024
+  memory = 720
 
   task_role_arn      = aws_iam_role.ecs_task_role.arn
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
-  container_definitions = jsonencode([
+  container_definitions = templatefile(
+    "${path.module}/templates/web-container-definition.json.tpl",
     {
-      name  = "server"
-      image = "${aws_ecr_repository.web.repository_url}:latest"
-
-      portMappings = [
-        {
-          containerPort = 8000
-          hostPort      = 8000
-        }
-
-      ]
-      essential = true
+      image_url    = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group    = aws_cloudwatch_log_group.server.name
+      aws_region   = var.aws_region
+      env_file_arn = "${aws_s3_bucket.env_files.arn}/backend.env"
     }
-  ])
+  )
 
   tags = merge(
     local.common_tags,
@@ -51,6 +45,29 @@ resource "aws_ecs_task_definition" "web" {
       Name = "${local.prefix}-web-task"
     }
   )
+}
+
+resource "aws_ecs_task_definition" "migration" {
+  family                   = "${local.prefix}-migration"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["EC2"]
+
+  cpu    = 512
+  memory = 500
+
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = templatefile(
+    "${path.module}/templates/migration-container-definition.json.tpl",
+    {
+      image_url    = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group    = aws_cloudwatch_log_group.server.name
+      aws_region   = var.aws_region
+      env_file_arn = "${aws_s3_bucket.env_files.arn}/backend.env"
+    }
+  )
+
 }
 
 resource "aws_ecs_service" "server" {
@@ -79,7 +96,13 @@ resource "aws_ecs_service" "server" {
 
   capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.main.name
-    weight = 1
+    weight            = 1
+  }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
   }
 
   depends_on = [aws_lb_listener.http]

@@ -92,14 +92,69 @@ resource "aws_iam_role_policy_attachment" "secret_manager" {
   policy_arn = "arn:aws:iam::aws:policy/AWSSecretsManagerClientReadOnlyAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "exec_s3" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+resource "aws_iam_policy" "env_file_read" {
+  name = "${local.prefix}-env-file-read"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "EnvFileReadObjectActions",
+        Effect   = "Allow",
+        Action   = [
+          "s3:GetObject",
+        ]
+        Resource = ["${aws_s3_bucket.env_files.arn}/*"]
+      },
+      {
+        Sid = "ListEnvBucket",
+        Effect = "Allow",
+        Action = "s3:ListBucket",
+        Resource = [aws_s3_bucket.env_files.arn]
+      }
+    ]
+  })
 }
 
-resource "aws_iam_role_policy_attachment" "task_s3" {
-  role       = aws_iam_role.ecs_task_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+resource "aws_iam_policy" "app_storage" {
+  name = "${local.prefix}-app-storage"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ApplicationReadDelete",
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+        ]
+        Resource = ["${aws_s3_bucket.app_storage.arn}/*"]
+      },
+      {
+        Sid = "ListAppStorageBucket",
+        Effect = "Allow",
+        Action = "s3:ListBucket",
+        Resource = [aws_s3_bucket.app_storage.arn]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "task_env_read" {
+  role = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.env_file_read.arn
+}
+
+resource "aws_iam_role_policy_attachment" "task_app_storage" {
+  role = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.app_storage.arn
 }
 
 
+resource "aws_iam_role_policy_attachment" "task_exec_env_read" {
+  role = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.env_file_read.arn
+  
+}
