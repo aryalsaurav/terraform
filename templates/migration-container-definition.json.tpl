@@ -6,9 +6,9 @@
         "portMappings": [],
         "essential": true,
         "command": [
-            "python",
-            "manage.py",
-            "migrate"
+            "sh",
+            "-c",
+            "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
         ],
         "environment": [],
         "environmentFiles": [
