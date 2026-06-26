@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "main" {
   name       = "${local.prefix}-db"
-  subnet_ids = [values(aws_subnet.private)[*].id]
+  subnet_ids = values(aws_subnet.private)[*].id
 }
 
 # resource "random_password" "postgres" {
@@ -66,7 +66,7 @@ resource "aws_db_instance" "postgres" {
 
 resource "aws_elasticache_subnet_group" "main" {
   name       = "${local.prefix}-redis"
-  subnet_ids = [values(aws_subnet.private)[*].id]
+  subnet_ids = values(aws_subnet.private)[*].id
 }
 
 resource "aws_elasticache_cluster" "redis" {
