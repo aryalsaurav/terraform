@@ -39,3 +39,15 @@ output "s3_env_url" {
 output "aws_region" {
   value = var.aws_region
 }
+
+output "db_endpoint" {
+  value = aws_db_instance.postgres.address
+}
+
+output "db_secret_arn" {
+  value = aws_db_instance.postgres.master_user_secret[0].secret_arn
+}
+
+output "redis_endpoint" {
+  value = aws_elasticache_cluster.redis.cache_nodes[0].address
+}
