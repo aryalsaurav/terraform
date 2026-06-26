@@ -16,7 +16,7 @@ output "public_subnet_ids" {
 output "private_subnet_ids" {
   value = {
     for k, subnet in aws_subnet.private :
-    k => subnet
+    k => subnet.id
   }
 }
 
@@ -70,4 +70,9 @@ output "web_task_family" {
 
 output "migration_task_family" {
   value = aws_ecs_task_definition.migration.family
+}
+
+output "alb_dns" {
+  value = aws_lb.server.dns_name
+
 }

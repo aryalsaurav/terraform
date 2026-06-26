@@ -92,6 +92,11 @@ resource "aws_iam_role_policy_attachment" "secret_manager" {
   policy_arn = "arn:aws:iam::aws:policy/AWSSecretsManagerClientReadOnlyAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "secret_manager_task" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSSecretsManagerClientReadOnlyAccess"
+}
+
 resource "aws_iam_policy" "env_file_read" {
   name = "${local.prefix}-env-file-read"
 

@@ -35,7 +35,7 @@ resource "aws_db_instance" "postgres" {
   max_allocated_storage = 100
   storage_type          = "gp3"
 
-  db_name  = local.prefix
+  db_name  = "${var.project_name}_${var.environment}"
   username = "postgres"
 
   manage_master_user_password = true
@@ -46,7 +46,7 @@ resource "aws_db_instance" "postgres" {
   publicly_accessible = false
   multi_az            = false
 
-  backup_retention_period = 7
+  backup_retention_period = 0
 
   deletion_protection = false
   skip_final_snapshot = true

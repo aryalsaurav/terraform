@@ -26,6 +26,12 @@
                 "type": "s3"
             }
         ],
+        "secrets": [
+            {
+                "name": "POSTGRES_PASSWORD",
+                "valueFrom": "${db_secret_arn}:password::"
+            }
+        ],
         "mountPoints": [],
         "volumesFrom": [],
         "logConfiguration": {

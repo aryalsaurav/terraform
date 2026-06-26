@@ -3,15 +3,7 @@
         "name": "server-migration",
         "image": "${image_url}",
         "cpu": 0,
-        "portMappings": [
-            {
-                "containerPort": 8000,
-                "hostPort": 8000,
-                "protocol": "tcp",
-                "name": "server-8000-tcp",
-                "appProtocol": "http"
-            }
-        ],
+        "portMappings": [],
         "essential": true,
         "command": [
             "python",
@@ -23,6 +15,12 @@
             {
                 "value": "${env_file_arn}",
                 "type": "s3"
+            }
+        ],
+        "secrets": [
+            {
+                "name": "POSTGRES_PASSWORD",
+                "valueFrom": "${db_secret_arn}:password::"
             }
         ],
         "mountPoints": [],

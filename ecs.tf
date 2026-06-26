@@ -32,10 +32,11 @@ resource "aws_ecs_task_definition" "web" {
   container_definitions = templatefile(
     "${path.module}/templates/web-container-definition.json.tpl",
     {
-      image_url    = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group    = aws_cloudwatch_log_group.server.name
-      aws_region   = var.aws_region
-      env_file_arn = "${aws_s3_bucket.env_files.arn}/backend.env"
+      image_url     = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group     = aws_cloudwatch_log_group.server.name
+      aws_region    = var.aws_region
+      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
+      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
     }
   )
 
@@ -50,10 +51,10 @@ resource "aws_ecs_task_definition" "web" {
 resource "aws_ecs_task_definition" "migration" {
   family                   = "${local.prefix}-migration"
   network_mode             = "awsvpc"
-  requires_compatibilities = ["EC2"]
+  requires_compatibilities = ["FARGATE"]
 
-  cpu    = 512
-  memory = 500
+  cpu    = 256
+  memory = 512
 
   task_role_arn      = aws_iam_role.ecs_task_role.arn
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
@@ -61,10 +62,11 @@ resource "aws_ecs_task_definition" "migration" {
   container_definitions = templatefile(
     "${path.module}/templates/migration-container-definition.json.tpl",
     {
-      image_url    = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group    = aws_cloudwatch_log_group.server.name
-      aws_region   = var.aws_region
-      env_file_arn = "${aws_s3_bucket.env_files.arn}/backend.env"
+      image_url     = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group     = aws_cloudwatch_log_group.server.name
+      aws_region    = var.aws_region
+      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
+      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
     }
   )
 
