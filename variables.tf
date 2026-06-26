@@ -51,3 +51,14 @@ variable "ecs_desired_size" {
   default = 2
 
 }
+
+variable "github_oidc_arn" {
+  type    = string
+  default = "arn:aws:iam::264595824735:oidc-provider/token.actions.githubusercontent.com"
+}
+
+variable "github_repo" {
+  type    = string
+  default = "repo:aryalsaurav/renter:ref:refs/heads/main"
+
+}

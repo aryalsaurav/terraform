@@ -158,3 +158,110 @@ resource "aws_iam_role_policy_attachment" "task_exec_env_read" {
   policy_arn = aws_iam_policy.env_file_read.arn
 
 }
+
+
+resource "aws_iam_role" "github_deploy" {
+  name = "${local.prefix}-github-deploy"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = var.github_oidc_arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = [
+              "${var.github_repo}"
+            ]
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "github_deploy" {
+  name = "${local.prefix}-github-deploy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ecr:GetAuthorizationToken"
+        ]
+
+        Resource = "*"
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:CompleteLayerUpload",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart",
+          "ecr:BatchGetImage"
+        ]
+
+        Resource = aws_ecr_repository.web.arn
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ecs:DescribeTaskDefinition",
+          "ecs:RegisterTaskDefinition",
+          "ecs:RunTask",
+          "ecs:DescribeTasks",
+          "ecs:UpdateService"
+        ]
+
+        Resource = "*"
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ecs:DescribeServices",
+          "ecs:DescribeClusters"
+        ]
+
+        Resource = "*"
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "iam:PassRole"
+        ]
+
+        Resource = [
+          aws_iam_role.ecs_task_role.arn,
+          aws_iam_role.ecs_task_execution_role.arn
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_deploy" {
+  role       = aws_iam_role.github_deploy.name
+  policy_arn = aws_iam_policy.github_deploy.arn
+}

@@ -51,3 +51,23 @@ output "db_secret_arn" {
 output "redis_endpoint" {
   value = aws_elasticache_cluster.redis.cache_nodes[0].address
 }
+
+output "github_deploy_role_arn" {
+  value = aws_iam_role.github_deploy.arn
+}
+
+output "cluster_name" {
+  value = aws_ecs_cluster.main.name
+}
+
+output "service_name" {
+  value = aws_ecs_service.server.name
+}
+
+output "web_task_family" {
+  value = aws_ecs_task_definition.web.family
+}
+
+output "migration_task_family" {
+  value = aws_ecs_task_definition.migration.family
+}
