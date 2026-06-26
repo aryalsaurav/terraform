@@ -15,7 +15,7 @@ output "public_subnet_ids" {
 
 output "private_subnet_ids" {
   value = {
-    for k, subnet in aws_subnet.private:
+    for k, subnet in aws_subnet.private :
     k => subnet
   }
 }

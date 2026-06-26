@@ -36,18 +36,18 @@ variable "ecs_instance_type" {
 
 variable "ecs_min_size" {
   type    = number
-  default = 1
+  default = 2
 
 }
 
 variable "ecs_max_size" {
   type    = number
-  default = 2
+  default = 10
 
 }
 
 variable "ecs_desired_size" {
   type    = number
-  default = 1
+  default = 2
 
 }

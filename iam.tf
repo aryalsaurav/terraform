@@ -99,17 +99,17 @@ resource "aws_iam_policy" "env_file_read" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid      = "EnvFileReadObjectActions",
-        Effect   = "Allow",
-        Action   = [
+        Sid    = "EnvFileReadObjectActions",
+        Effect = "Allow",
+        Action = [
           "s3:GetObject",
         ]
         Resource = ["${aws_s3_bucket.env_files.arn}/*"]
       },
       {
-        Sid = "ListEnvBucket",
-        Effect = "Allow",
-        Action = "s3:ListBucket",
+        Sid      = "ListEnvBucket",
+        Effect   = "Allow",
+        Action   = "s3:ListBucket",
         Resource = [aws_s3_bucket.env_files.arn]
       }
     ]
@@ -133,9 +133,9 @@ resource "aws_iam_policy" "app_storage" {
         Resource = ["${aws_s3_bucket.app_storage.arn}/*"]
       },
       {
-        Sid = "ListAppStorageBucket",
-        Effect = "Allow",
-        Action = "s3:ListBucket",
+        Sid      = "ListAppStorageBucket",
+        Effect   = "Allow",
+        Action   = "s3:ListBucket",
         Resource = [aws_s3_bucket.app_storage.arn]
       }
     ]
@@ -143,18 +143,18 @@ resource "aws_iam_policy" "app_storage" {
 }
 
 resource "aws_iam_role_policy_attachment" "task_env_read" {
-  role = aws_iam_role.ecs_task_role.name
+  role       = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.env_file_read.arn
 }
 
 resource "aws_iam_role_policy_attachment" "task_app_storage" {
-  role = aws_iam_role.ecs_task_role.name
+  role       = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.app_storage.arn
 }
 
 
 resource "aws_iam_role_policy_attachment" "task_exec_env_read" {
-  role = aws_iam_role.ecs_task_execution_role.name
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.env_file_read.arn
-  
+
 }
