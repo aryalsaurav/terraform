@@ -29,7 +29,6 @@
             "logDriver": "awslogs",
             "options": {
                 "awslogs-group": "${log_group}",
-                "awslogs-create-group": "true",
                 "awslogs-region": "${aws_region}",
                 "awslogs-stream-prefix": "migration"
             }

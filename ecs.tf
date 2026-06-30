@@ -1,6 +1,11 @@
 resource "aws_ecr_repository" "web" {
   name                 = "${var.project_name}/backend"
-  image_tag_mutability = "IMMUTABLE"
+  image_tag_mutability = "IMMUTABLE_WITH_EXCLUSION"
+
+  image_tag_mutability_exclusion_filter {
+    filter      = "latest"
+    filter_type = "WILDCARD"
+  }
 
   image_scanning_configuration {
     scan_on_push = true
@@ -48,30 +53,6 @@ resource "aws_ecs_task_definition" "web" {
   )
 }
 
-resource "aws_ecs_task_definition" "migration" {
-  family                   = "${local.prefix}-migration"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-
-  cpu    = 256
-  memory = 512
-
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-
-  container_definitions = templatefile(
-    "${path.module}/templates/migration-container-definition.json.tpl",
-    {
-      image_url     = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group     = aws_cloudwatch_log_group.server.name
-      aws_region    = var.aws_region
-      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
-      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
-    }
-  )
-
-}
-
 resource "aws_ecs_service" "server" {
   name            = "${local.prefix}-service"
   cluster         = aws_ecs_cluster.main.id
@@ -103,10 +84,144 @@ resource "aws_ecs_service" "server" {
 
   lifecycle {
     ignore_changes = [
-      task_definition
+      task_definition,
+      desired_count
     ]
   }
 
   depends_on = [aws_lb_listener.http]
+
+}
+
+resource "aws_ecs_task_definition" "migration" {
+  family                   = "${local.prefix}-migration"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+
+  cpu    = 256
+  memory = 512
+
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = templatefile(
+    "${path.module}/templates/migration-container-definition.json.tpl",
+    {
+      image_url     = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group     = aws_cloudwatch_log_group.server.name
+      aws_region    = var.aws_region
+      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
+      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+    }
+  )
+
+}
+
+resource "aws_ecs_task_definition" "celery" {
+  family                   = "${local.prefix}-celery"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["EC2"]
+
+  cpu    = 512
+  memory = 720
+
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = templatefile(
+    "${path.module}/templates/celery-container-definition.json.tpl",
+    {
+      image_url     = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group     = aws_cloudwatch_log_group.celery.name
+      aws_region    = var.aws_region
+      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
+      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+    }
+  )
+}
+
+
+resource "aws_ecs_service" "celery" {
+  name            = "${local.prefix}-celery-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.celery.arn
+
+  desired_count = 1
+
+  network_configuration {
+    subnets = [
+      aws_subnet.private["private_a"].id,
+      aws_subnet.private["private_b"].id,
+    ]
+
+    security_groups = [
+      aws_security_group.web_task.id
+    ]
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.celery.name
+    weight            = 1
+  }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition,
+      desired_count
+    ]
+  }
+
+}
+
+resource "aws_ecs_task_definition" "beat" {
+  family                   = "${local.prefix}-beat"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["EC2"]
+
+  cpu    = 512
+  memory = 720
+
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = templatefile(
+    "${path.module}/templates/beat-container-definition.json.tpl",
+    {
+      image_url     = "${aws_ecr_repository.web.repository_url}:latest"
+      log_group     = aws_cloudwatch_log_group.celery.name
+      aws_region    = var.aws_region
+      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
+      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+    }
+  )
+}
+
+resource "aws_ecs_service" "beat" {
+  name                 = "${local.prefix}-beat-service"
+  cluster              = aws_ecs_cluster.main.id
+  task_definition      = aws_ecs_task_definition.beat.arn
+  launch_type          = "EC2"
+  force_new_deployment = true
+
+  desired_count                      = 1
+  deployment_minimum_healthy_percent = 0
+  deployment_maximum_percent         = 100
+
+  network_configuration {
+    subnets = [
+      aws_subnet.private["private_a"].id,
+      aws_subnet.private["private_b"].id,
+    ]
+
+    security_groups = [
+      aws_security_group.web_task.id
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
+  }
 
 }

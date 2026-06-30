@@ -53,3 +53,61 @@ resource "aws_appautoscaling_policy" "cpu" {
   }
 
 }
+
+
+resource "aws_autoscaling_group" "ecs_celery" {
+  name = "${local.prefix}-ecs-asg-celery"
+
+  min_size         = 1
+  max_size         = 10
+  desired_capacity = 1
+
+  vpc_zone_identifier = [
+    for subnet in aws_subnet.private :
+    subnet.id
+  ]
+
+  launch_template {
+    id      = aws_launch_template.ecs.id
+    version = "$Latest"
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "${local.prefix}-ecs-celery-instance"
+    propagate_at_launch = true
+  }
+
+  depends_on = [aws_nat_gateway.main, aws_route_table_association.private]
+}
+
+resource "aws_appautoscaling_target" "ecs_celery" {
+  service_namespace = "ecs"
+  resource_id       = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.celery.name}"
+
+  scalable_dimension = "ecs:service:DesiredCount"
+
+  min_capacity = 1
+  max_capacity = var.ecs_max_size
+
+}
+
+
+resource "aws_appautoscaling_policy" "celery_cpu" {
+  name = "${local.prefix}-celery-cpu-scaling"
+
+  policy_type = "TargetTrackingScaling"
+
+  resource_id        = aws_appautoscaling_target.ecs_celery.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_celery.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_celery.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    target_value = 70
+
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+  }
+
+}
