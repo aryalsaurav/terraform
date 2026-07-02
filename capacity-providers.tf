@@ -7,6 +7,7 @@ resource "aws_ecs_capacity_provider" "main" {
     managed_scaling {
       status          = "ENABLED"
       target_capacity = 85
+      instance_warmup_period = 120
     }
   }
 }
@@ -20,8 +21,11 @@ resource "aws_ecs_capacity_provider" "celery" {
     managed_scaling {
       status          = "ENABLED"
       target_capacity = 85
+      instance_warmup_period = 120
     }
   }
+
+  depends_on = [ aws_ecs_capacity_provider.main ]
 }
 
 resource "aws_ecs_cluster_capacity_providers" "main" {

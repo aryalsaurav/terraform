@@ -21,6 +21,11 @@ resource "aws_autoscaling_group" "ecs" {
     propagate_at_launch = true
   }
 
+  lifecycle {
+    ignore_changes = [desired_capacity]
+  }
+
+
   depends_on = [aws_nat_gateway.main, aws_route_table_association.private]
 }
 
@@ -77,6 +82,16 @@ resource "aws_autoscaling_group" "ecs_celery" {
     value               = "${local.prefix}-ecs-celery-instance"
     propagate_at_launch = true
   }
+  tag {
+    key                 = "AmazonECSManaged"
+    value               = ""
+    propagate_at_launch = true
+  }
+
+  lifecycle {
+    ignore_changes = [desired_capacity]
+  }
+
 
   depends_on = [aws_nat_gateway.main, aws_route_table_association.private]
 }
