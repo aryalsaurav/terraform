@@ -54,9 +54,9 @@ resource "aws_ecs_task_definition" "web" {
 }
 
 resource "aws_ecs_service" "server" {
-  name            = "${local.prefix}-service"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.web.arn
+  name                 = "${local.prefix}-service"
+  cluster              = aws_ecs_cluster.main.id
+  task_definition      = aws_ecs_task_definition.web.arn
   force_new_deployment = true
   # launch_type = "EC2"
 
@@ -144,9 +144,9 @@ resource "aws_ecs_task_definition" "celery" {
 
 
 resource "aws_ecs_service" "celery" {
-  name            = "${local.prefix}-celery-service"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.celery.arn
+  name                 = "${local.prefix}-celery-service"
+  cluster              = aws_ecs_cluster.main.id
+  task_definition      = aws_ecs_task_definition.celery.arn
   force_new_deployment = true
   # launch_type = "EC2"
 

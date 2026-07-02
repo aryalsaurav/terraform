@@ -5,8 +5,8 @@ resource "aws_ecs_capacity_provider" "main" {
     auto_scaling_group_arn = aws_autoscaling_group.ecs.arn
 
     managed_scaling {
-      status          = "ENABLED"
-      target_capacity = 85
+      status                 = "ENABLED"
+      target_capacity        = 85
       instance_warmup_period = 120
     }
   }
@@ -19,13 +19,13 @@ resource "aws_ecs_capacity_provider" "celery" {
     auto_scaling_group_arn = aws_autoscaling_group.ecs_celery.arn
 
     managed_scaling {
-      status          = "ENABLED"
-      target_capacity = 85
+      status                 = "ENABLED"
+      target_capacity        = 85
       instance_warmup_period = 120
     }
   }
 
-  depends_on = [ aws_ecs_capacity_provider.main ]
+  depends_on = [aws_ecs_capacity_provider.main]
 }
 
 resource "aws_ecs_cluster_capacity_providers" "main" {
