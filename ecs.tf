@@ -63,10 +63,7 @@ resource "aws_ecs_service" "server" {
   desired_count = var.ecs_desired_size
 
   network_configuration {
-    subnets = [
-      aws_subnet.private["private_a"].id,
-      aws_subnet.private["private_b"].id,
-    ]
+    subnets = values(module.vpc.private_subnet_ids)
 
     security_groups = [
       aws_security_group.web_task.id
@@ -153,10 +150,7 @@ resource "aws_ecs_service" "celery" {
   desired_count = 1
 
   network_configuration {
-    subnets = [
-      for subnet in aws_subnet.private :
-      subnet.id
-    ]
+    subnets = values(module.vpc.private_subnet_ids)
 
     security_groups = [
       aws_security_group.web_task.id
@@ -213,8 +207,8 @@ resource "aws_ecs_service" "beat" {
 
   network_configuration {
     subnets = [
-      aws_subnet.private["private_a"].id,
-      aws_subnet.private["private_b"].id,
+      module.vpc.private_subnet_ids["private_a"],
+      module.vpc.private_subnet_ids["private_b"]
     ]
 
     security_groups = [

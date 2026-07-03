@@ -5,10 +5,8 @@ resource "aws_autoscaling_group" "ecs" {
   max_size         = var.ecs_max_size
   desired_capacity = var.ecs_desired_size
 
-  vpc_zone_identifier = [
-    for subnet in aws_subnet.private :
-    subnet.id
-  ]
+  vpc_zone_identifier = values(module.vpc.private_subnet_ids)
+
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -24,9 +22,6 @@ resource "aws_autoscaling_group" "ecs" {
   lifecycle {
     ignore_changes = [desired_capacity]
   }
-
-
-  depends_on = [aws_nat_gateway.main, aws_route_table_association.private]
 }
 
 resource "aws_appautoscaling_target" "ecs" {
@@ -67,10 +62,7 @@ resource "aws_autoscaling_group" "ecs_celery" {
   max_size         = 10
   desired_capacity = 1
 
-  vpc_zone_identifier = [
-    for subnet in aws_subnet.private :
-    subnet.id
-  ]
+  vpc_zone_identifier = values(module.vpc.private_subnet_ids)
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -91,9 +83,6 @@ resource "aws_autoscaling_group" "ecs_celery" {
   lifecycle {
     ignore_changes = [desired_capacity]
   }
-
-
-  depends_on = [aws_nat_gateway.main, aws_route_table_association.private]
 }
 
 resource "aws_appautoscaling_target" "ecs_celery" {

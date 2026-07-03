@@ -1,5 +1,5 @@
 resource "aws_alb_target_group" "server" {
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = module.vpc.vpc_id
   name     = "${local.prefix}-tg"
   protocol = "HTTP"
   port     = 8000
@@ -33,8 +33,8 @@ resource "aws_lb" "server" {
   ]
 
   subnets = [
-    aws_subnet.public["public_a"].id,
-    aws_subnet.public["public_b"].id
+    module.vpc.public_subnet_ids["public_a"],
+    module.vpc.public_subnet_ids["public_b"]
   ]
 
   tags = merge(

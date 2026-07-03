@@ -1,7 +1,7 @@
 resource "aws_security_group" "alb" {
   name        = "${local.prefix}-alb-sg"
   description = "ALB Security Group"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   tags = merge(
     local.common_tags,
@@ -13,7 +13,7 @@ resource "aws_security_group" "alb" {
 resource "aws_security_group" "web_task" {
   name        = "${local.prefix}-web-task-sg"
   description = "Task Security Group"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   tags = merge(
     local.common_tags,
@@ -25,7 +25,7 @@ resource "aws_security_group" "web_task" {
 resource "aws_security_group" "db" {
   name        = "${local.prefix}-web-db-sg"
   description = "Db Security Group"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   tags = merge(
     local.common_tags,
@@ -38,7 +38,7 @@ resource "aws_security_group" "db" {
 resource "aws_security_group" "ecs_instance" {
   name        = "${local.prefix}-ecs-instance-sg"
   description = "Ecs instance sg"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   tags = merge(
     local.common_tags,
@@ -116,7 +116,7 @@ resource "aws_vpc_security_group_egress_rule" "db_all_outbound" {
 resource "aws_security_group" "redis" {
   name        = "${local.prefix}-redis-sg"
   description = "Redis security group"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = module.vpc.vpc_id
 
   tags = merge(
     local.common_tags,
