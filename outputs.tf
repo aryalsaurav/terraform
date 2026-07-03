@@ -11,7 +11,7 @@ output "private_subnet_ids" {
 }
 
 output "task_sg_id" {
-  value = aws_security_group.web_task.id
+  value = module.security.task_sg_id
 }
 
 output "ecr_repository_url" {

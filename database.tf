@@ -41,7 +41,7 @@ resource "aws_db_instance" "postgres" {
   manage_master_user_password = true
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [aws_security_group.db.id]
+  vpc_security_group_ids = [module.security.db_sg_id]
 
   publicly_accessible = false
   multi_az            = false
@@ -76,5 +76,5 @@ resource "aws_elasticache_cluster" "redis" {
   num_cache_nodes    = 1
   port               = 6379
   subnet_group_name  = aws_elasticache_subnet_group.main.name
-  security_group_ids = [aws_security_group.redis.id]
+  security_group_ids = [module.security.redis_sg_id]
 }

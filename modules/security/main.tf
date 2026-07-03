@@ -1,49 +1,49 @@
 resource "aws_security_group" "alb" {
-  name        = "${local.prefix}-alb-sg"
+  name        = "${var.prefix}-alb-sg"
   description = "ALB Security Group"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-alb-sg"
+      Name = "${var.prefix}-alb-sg"
     }
   )
 }
 resource "aws_security_group" "web_task" {
-  name        = "${local.prefix}-web-task-sg"
+  name        = "${var.prefix}-web-task-sg"
   description = "Task Security Group"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-task-sg"
+      Name = "${var.prefix}-task-sg"
     }
   )
 }
 resource "aws_security_group" "db" {
-  name        = "${local.prefix}-web-db-sg"
+  name        = "${var.prefix}-web-db-sg"
   description = "Db Security Group"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-db-sg"
+      Name = "${var.prefix}-db-sg"
     }
   )
 }
 
 resource "aws_security_group" "ecs_instance" {
-  name        = "${local.prefix}-ecs-instance-sg"
+  name        = "${var.prefix}-ecs-instance-sg"
   description = "Ecs instance sg"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-ecs-instance-sg"
+      Name = "${var.prefix}-ecs-instance-sg"
     }
   )
 
@@ -114,14 +114,14 @@ resource "aws_vpc_security_group_egress_rule" "db_all_outbound" {
 }
 
 resource "aws_security_group" "redis" {
-  name        = "${local.prefix}-redis-sg"
+  name        = "${var.prefix}-redis-sg"
   description = "Redis security group"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = var.vpc_id
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-redis-sg"
+      Name = "${var.prefix}-redis-sg"
     }
   )
 }

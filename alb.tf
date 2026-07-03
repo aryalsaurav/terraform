@@ -29,7 +29,7 @@ resource "aws_lb" "server" {
   load_balancer_type = "application"
 
   security_groups = [
-    aws_security_group.alb.id
+    module.security.alb_sg_id
   ]
 
   subnets = [

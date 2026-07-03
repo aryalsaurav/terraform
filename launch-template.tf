@@ -16,7 +16,7 @@ resource "aws_launch_template" "ecs" {
 
   instance_type = var.ecs_instance_type
 
-  vpc_security_group_ids = [aws_security_group.ecs_instance.id]
+  vpc_security_group_ids = [module.security.instance_sg_id]
 
   iam_instance_profile {
     arn = aws_iam_instance_profile.ecs_instance.arn

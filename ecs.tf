@@ -66,7 +66,7 @@ resource "aws_ecs_service" "server" {
     subnets = values(module.vpc.private_subnet_ids)
 
     security_groups = [
-      aws_security_group.web_task.id
+      module.security.task_sg_id
     ]
   }
 
@@ -153,7 +153,7 @@ resource "aws_ecs_service" "celery" {
     subnets = values(module.vpc.private_subnet_ids)
 
     security_groups = [
-      aws_security_group.web_task.id
+      module.security.task_sg_id
     ]
   }
 
@@ -212,7 +212,7 @@ resource "aws_ecs_service" "beat" {
     ]
 
     security_groups = [
-      aws_security_group.web_task.id
+      module.security.task_sg_id
     ]
   }
 
