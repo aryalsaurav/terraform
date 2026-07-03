@@ -71,7 +71,7 @@ resource "aws_ecs_service" "server" {
   }
 
   load_balancer {
-    target_group_arn = aws_alb_target_group.server.arn
+    target_group_arn = module.alb.server_tg_arn
     container_name   = "server"
     container_port   = 8000
   }
@@ -87,9 +87,6 @@ resource "aws_ecs_service" "server" {
       desired_count
     ]
   }
-
-  depends_on = [aws_lb_listener.http]
-
 }
 
 resource "aws_ecs_task_definition" "migration" {

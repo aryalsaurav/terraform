@@ -1,6 +1,6 @@
 resource "aws_alb_target_group" "server" {
-  vpc_id   = module.vpc.vpc_id
-  name     = "${local.prefix}-tg"
+  vpc_id   = var.vpc_id
+  name     = "${var.prefix}-tg"
   protocol = "HTTP"
   port     = 8000
 
@@ -17,30 +17,30 @@ resource "aws_alb_target_group" "server" {
   }
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-tg"
+      Name = "${var.prefix}-tg"
     }
   )
 }
 
 resource "aws_lb" "server" {
-  name               = "${local.prefix}-alb"
+  name               = "${var.prefix}-alb"
   load_balancer_type = "application"
 
   security_groups = [
-    module.security.alb_sg_id
+    var.alb_sg_id
   ]
 
   subnets = [
-    module.vpc.public_subnet_ids["public_a"],
-    module.vpc.public_subnet_ids["public_b"]
+    var.public_subnets["public_a"],
+    var.public_subnets["public_b"]
   ]
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-alb"
+      Name = "${var.prefix}-alb"
     }
   )
 }

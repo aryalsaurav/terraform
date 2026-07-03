@@ -59,16 +59,10 @@ output "migration_task_family" {
 }
 
 output "alb_dns" {
-  value = aws_lb.server.dns_name
+  value = module.alb.alb_dns
 
 }
 
 output "acm_validation_record" {
-  value = {
-    for dvo in aws_acm_certificate.server.domain_validation_options : dvo.domain_name => {
-      name  = dvo.resource_record_name
-      type  = dvo.resource_record_type
-      value = dvo.resource_record_value
-    }
-  }
+  value = module.alb.acm_validation_record
 }
