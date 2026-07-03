@@ -31,7 +31,7 @@ variable "private_subnets" {
 
 variable "ecs_instance_type" {
   type    = string
-  default = "t3.small"
+  default = "t3.micro"
 }
 
 variable "ecs_min_size" {
