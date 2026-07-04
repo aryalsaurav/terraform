@@ -1,14 +1,5 @@
-terraform {
-  backend "s3" {
-    encrypt      = true
-    use_lockfile = true
-
-  }
-}
-
-
 module "vpc" {
-  source          = "./modules/vpc"
+  source          = "../../modules/vpc"
   vpc_cidr        = var.vpc_cidr
   public_subnets  = var.public_subnets
   private_subnets = var.private_subnets
@@ -17,7 +8,7 @@ module "vpc" {
 }
 
 module "security" {
-  source = "./modules/security"
+  source = "../../modules/security"
 
   vpc_id = module.vpc.vpc_id
   tags   = local.common_tags
@@ -25,7 +16,7 @@ module "security" {
 }
 
 module "alb" {
-  source = "./modules/alb"
+  source = "../../modules/alb"
 
   vpc_id         = module.vpc.vpc_id
   alb_sg_id      = module.security.alb_sg_id
@@ -36,7 +27,7 @@ module "alb" {
 }
 
 module "ecs" {
-  source = "./modules/ecs"
+  source = "../../modules/ecs"
 
   vpc_id                   = module.vpc.vpc_id
   public_subnets           = module.vpc.public_subnet_ids
@@ -64,7 +55,7 @@ module "ecs" {
 }
 
 module "iam" {
-  source = "./modules/iam"
+  source = "../../modules/iam"
 
   prefix = local.prefix
   tags   = local.common_tags
@@ -77,7 +68,7 @@ module "iam" {
 }
 
 module "databases" {
-  source = "./modules/databases"
+  source = "../../modules/databases"
 
   prefix = local.prefix
   tags = local.common_tags
@@ -90,7 +81,7 @@ module "databases" {
 }
 
 module "s3" {
-  source = "./modules/s3"
+  source = "../../modules/s3"
 
   prefix = local.prefix
   tags = local.common_tags
@@ -98,7 +89,7 @@ module "s3" {
 }
 
 module "monitoring" {
-  source = "./modules/monitoring"
+  source = "../../modules/monitoring"
 
   prefix = local.prefix
   tags = local.common_tags
