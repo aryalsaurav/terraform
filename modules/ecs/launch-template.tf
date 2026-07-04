@@ -10,16 +10,16 @@ data "aws_ami" "amazon_linux" {
 }
 
 resource "aws_launch_template" "ecs" {
-  name_prefix = "${local.prefix}-ecs-"
+  name_prefix = "${var.prefix}-ecs-"
 
   image_id = data.aws_ami.amazon_linux.id
 
   instance_type = var.ecs_instance_type
 
-  vpc_security_group_ids = [module.security.instance_sg_id]
+  vpc_security_group_ids = [var.instance_sg_id]
 
   iam_instance_profile {
-    arn = aws_iam_instance_profile.ecs_instance.arn
+    arn = var.iam_instance_profile_arn
   }
 
   user_data = base64encode(
@@ -34,9 +34,9 @@ resource "aws_launch_template" "ecs" {
     resource_type = "instance"
 
     tags = merge(
-      local.common_tags,
+      var.tags,
       {
-        Name = "${local.prefix}-ecs-instance"
+        Name = "${var.prefix}-ecs-instance"
       }
     )
   }
@@ -52,9 +52,9 @@ resource "aws_launch_template" "ecs" {
   }
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-ecs-instance"
+      Name = "${var.prefix}-ecs-instance"
     }
   )
 }

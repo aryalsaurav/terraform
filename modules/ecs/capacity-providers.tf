@@ -1,5 +1,5 @@
 resource "aws_ecs_capacity_provider" "main" {
-  name = "${local.prefix}-capacity-provider"
+  name = "${var.prefix}-capacity-provider"
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.ecs.arn
@@ -13,7 +13,7 @@ resource "aws_ecs_capacity_provider" "main" {
 }
 
 resource "aws_ecs_capacity_provider" "celery" {
-  name = "${local.prefix}-capacity-provider-celery"
+  name = "${var.prefix}-capacity-provider-celery"
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.ecs_celery.arn

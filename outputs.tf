@@ -15,11 +15,7 @@ output "task_sg_id" {
 }
 
 output "ecr_repository_url" {
-  value = aws_ecr_repository.web.repository_url
-}
-
-output "s3_env_url" {
-  value = aws_s3_bucket.env_files.arn
+  value = module.ecs.ecr_repository_url
 }
 
 output "aws_region" {
@@ -27,35 +23,31 @@ output "aws_region" {
 }
 
 output "db_endpoint" {
-  value = aws_db_instance.postgres.address
-}
-
-output "db_secret_arn" {
-  value = aws_db_instance.postgres.master_user_secret[0].secret_arn
+  value = module.databases.db_address
 }
 
 output "redis_endpoint" {
-  value = aws_elasticache_cluster.redis.cache_nodes[0].address
+  value = module.databases.redis_endpoint
 }
 
 output "github_deploy_role_arn" {
-  value = aws_iam_role.github_deploy.arn
+  value = module.iam.github_deploy_role_arn
 }
 
 output "cluster_name" {
-  value = aws_ecs_cluster.main.name
+  value = module.ecs.cluster_name
 }
 
 output "service_name" {
-  value = aws_ecs_service.server.name
+  value = module.ecs.server_service_name
 }
 
 output "web_task_family" {
-  value = aws_ecs_task_definition.web.family
+  value = module.ecs.server_task_family
 }
 
 output "migration_task_family" {
-  value = aws_ecs_task_definition.migration.family
+  value = module.ecs.migration_task_family
 }
 
 output "alb_dns" {

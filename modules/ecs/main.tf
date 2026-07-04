@@ -12,49 +12,49 @@ resource "aws_ecr_repository" "web" {
   }
 }
 resource "aws_ecs_cluster" "main" {
-  name = "${local.prefix}-cluster"
+  name = "${var.prefix}-cluster"
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-cluster"
+      Name = "${var.prefix}-cluster"
     }
   )
 }
 
 
 resource "aws_ecs_task_definition" "web" {
-  family                   = "${local.prefix}-web"
+  family                   = "${var.prefix}-web"
   network_mode             = "awsvpc"
   requires_compatibilities = ["EC2"]
 
   cpu    = 512
   memory = 720
 
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = var.task_role_arn
+  execution_role_arn = var.execution_role_arn
 
   container_definitions = templatefile(
     "${path.module}/templates/web-container-definition.json.tpl",
     {
       image_url     = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group     = aws_cloudwatch_log_group.server.name
+      log_group     = var.server_log_group_name
       aws_region    = var.aws_region
-      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
-      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+      env_file_arn  = "${var.env_bucket_arn}/backend.env"
+      db_secret_arn = var.db_secret_arn
     }
   )
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-web-task"
+      Name = "${var.prefix}-web-task"
     }
   )
 }
 
 resource "aws_ecs_service" "server" {
-  name                 = "${local.prefix}-service"
+  name                 = "${var.prefix}-service"
   cluster              = aws_ecs_cluster.main.id
   task_definition      = aws_ecs_task_definition.web.arn
   force_new_deployment = true
@@ -63,15 +63,15 @@ resource "aws_ecs_service" "server" {
   desired_count = var.ecs_desired_size
 
   network_configuration {
-    subnets = values(module.vpc.private_subnet_ids)
+    subnets = values(var.private_subnets)
 
     security_groups = [
-      module.security.task_sg_id
+      var.task_sg_id
     ]
   }
 
   load_balancer {
-    target_group_arn = module.alb.server_tg_arn
+    target_group_arn = var.server_tg_arn
     container_name   = "server"
     container_port   = 8000
   }
@@ -90,55 +90,55 @@ resource "aws_ecs_service" "server" {
 }
 
 resource "aws_ecs_task_definition" "migration" {
-  family                   = "${local.prefix}-migration"
+  family                   = "${var.prefix}-migration"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
 
   cpu    = 256
   memory = 512
 
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = var.task_role_arn
+  execution_role_arn = var.execution_role_arn
 
   container_definitions = templatefile(
     "${path.module}/templates/migration-container-definition.json.tpl",
     {
       image_url     = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group     = aws_cloudwatch_log_group.server.name
+      log_group     = var.server_log_group_name
       aws_region    = var.aws_region
-      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
-      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+      env_file_arn  = "${var.env_bucket_arn}/backend.env"
+      db_secret_arn = var.db_secret_arn
     }
   )
 
 }
 
 resource "aws_ecs_task_definition" "celery" {
-  family                   = "${local.prefix}-celery"
+  family                   = "${var.prefix}-celery"
   network_mode             = "awsvpc"
   requires_compatibilities = ["EC2"]
 
   cpu    = 512
   memory = 720
 
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = var.task_role_arn
+  execution_role_arn = var.execution_role_arn
 
   container_definitions = templatefile(
     "${path.module}/templates/celery-container-definition.json.tpl",
     {
       image_url     = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group     = aws_cloudwatch_log_group.celery.name
+      log_group     = var.celery_log_group_name
       aws_region    = var.aws_region
-      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
-      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+      env_file_arn  = "${var.env_bucket_arn}/backend.env"
+      db_secret_arn = var.db_secret_arn
     }
   )
 }
 
 
 resource "aws_ecs_service" "celery" {
-  name                 = "${local.prefix}-celery-service"
+  name                 = "${var.prefix}-celery-service"
   cluster              = aws_ecs_cluster.main.id
   task_definition      = aws_ecs_task_definition.celery.arn
   force_new_deployment = true
@@ -147,10 +147,10 @@ resource "aws_ecs_service" "celery" {
   desired_count = 1
 
   network_configuration {
-    subnets = values(module.vpc.private_subnet_ids)
+    subnets = values(var.private_subnets)
 
     security_groups = [
-      module.security.task_sg_id
+      var.task_sg_id
     ]
   }
 
@@ -169,30 +169,30 @@ resource "aws_ecs_service" "celery" {
 }
 
 resource "aws_ecs_task_definition" "beat" {
-  family                   = "${local.prefix}-beat"
+  family                   = "${var.prefix}-beat"
   network_mode             = "awsvpc"
   requires_compatibilities = ["EC2"]
 
   cpu    = 512
   memory = 720
 
-  task_role_arn      = aws_iam_role.ecs_task_role.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = var.task_role_arn
+  execution_role_arn = var.execution_role_arn
 
   container_definitions = templatefile(
     "${path.module}/templates/beat-container-definition.json.tpl",
     {
       image_url     = "${aws_ecr_repository.web.repository_url}:latest"
-      log_group     = aws_cloudwatch_log_group.celery.name
+      log_group     = var.celery_log_group_name
       aws_region    = var.aws_region
-      env_file_arn  = "${aws_s3_bucket.env_files.arn}/backend.env"
-      db_secret_arn = "${aws_db_instance.postgres.master_user_secret[0].secret_arn}"
+      env_file_arn  = "${var.env_bucket_arn}/backend.env"
+      db_secret_arn = var.db_secret_arn
     }
   )
 }
 
 resource "aws_ecs_service" "beat" {
-  name                 = "${local.prefix}-beat-service"
+  name                 = "${var.prefix}-beat-service"
   cluster              = aws_ecs_cluster.main.id
   task_definition      = aws_ecs_task_definition.beat.arn
   launch_type          = "EC2"
@@ -204,12 +204,12 @@ resource "aws_ecs_service" "beat" {
 
   network_configuration {
     subnets = [
-      module.vpc.private_subnet_ids["private_a"],
-      module.vpc.private_subnet_ids["private_b"]
+      var.private_subnets["private_a"],
+      var.private_subnets["private_b"]
     ]
 
     security_groups = [
-      module.security.task_sg_id
+      var.task_sg_id
     ]
   }
 

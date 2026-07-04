@@ -1,11 +1,11 @@
 resource "aws_autoscaling_group" "ecs" {
-  name = "${local.prefix}-ecs-asg"
+  name = "${var.prefix}-ecs-asg"
 
   min_size         = var.ecs_min_size
   max_size         = var.ecs_max_size
   desired_capacity = var.ecs_desired_size
 
-  vpc_zone_identifier = values(module.vpc.private_subnet_ids)
+  vpc_zone_identifier = values(var.private_subnets)
 
 
   launch_template {
@@ -15,7 +15,7 @@ resource "aws_autoscaling_group" "ecs" {
 
   tag {
     key                 = "Name"
-    value               = "${local.prefix}-ecs-instance"
+    value               = "${var.prefix}-ecs-instance"
     propagate_at_launch = true
   }
 
@@ -36,7 +36,7 @@ resource "aws_appautoscaling_target" "ecs" {
 }
 
 resource "aws_appautoscaling_policy" "cpu" {
-  name = "${local.prefix}-cpu-scaling"
+  name = "${var.prefix}-cpu-scaling"
 
   policy_type = "TargetTrackingScaling"
 
@@ -56,13 +56,13 @@ resource "aws_appautoscaling_policy" "cpu" {
 
 
 resource "aws_autoscaling_group" "ecs_celery" {
-  name = "${local.prefix}-ecs-asg-celery"
+  name = "${var.prefix}-ecs-asg-celery"
 
   min_size         = 1
   max_size         = 10
   desired_capacity = 1
 
-  vpc_zone_identifier = values(module.vpc.private_subnet_ids)
+  vpc_zone_identifier = values(var.private_subnets)
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -71,7 +71,7 @@ resource "aws_autoscaling_group" "ecs_celery" {
 
   tag {
     key                 = "Name"
-    value               = "${local.prefix}-ecs-celery-instance"
+    value               = "${var.prefix}-ecs-celery-instance"
     propagate_at_launch = true
   }
   tag {
@@ -98,7 +98,7 @@ resource "aws_appautoscaling_target" "ecs_celery" {
 
 
 resource "aws_appautoscaling_policy" "celery_cpu" {
-  name = "${local.prefix}-celery-cpu-scaling"
+  name = "${var.prefix}-celery-cpu-scaling"
 
   policy_type = "TargetTrackingScaling"
 

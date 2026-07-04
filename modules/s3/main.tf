@@ -1,10 +1,10 @@
 resource "aws_s3_bucket" "env_files" {
-  bucket = "${local.prefix}-env-files"
+  bucket = "${var.prefix}-env-files"
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-env-files"
+      Name = "${var.prefix}-env-files"
     }
   )
 }
@@ -28,12 +28,12 @@ resource "aws_s3_bucket_acl" "env_files" {
 }
 
 resource "aws_s3_bucket" "app_storage" {
-  bucket = "${local.prefix}-app-storage"
+  bucket = "${var.prefix}-app-storage"
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-app-storage"
+      Name = "${var.prefix}-app-storage"
     }
   )
 }
@@ -60,16 +60,16 @@ resource "aws_s3_bucket_acl" "app_storage" {
 
 
 resource "aws_s3_bucket" "tf_state" {
-  bucket = "${local.prefix}-terraform-state"
+  bucket = "${var.prefix}-terraform-state"
 
   lifecycle {
     prevent_destroy = true
   }
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-terraform-state"
+      Name = "${var.prefix}-terraform-state"
     }
   )
 

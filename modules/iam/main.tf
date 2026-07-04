@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ecs_instance" {
-  name = "${local.prefix}-ecs-instance-role"
+  name = "${var.prefix}-ecs-instance-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -16,9 +16,9 @@ resource "aws_iam_role" "ecs_instance" {
     ]
   })
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-ecs-instance-role"
+      Name = "${var.prefix}-ecs-instance-role"
     }
   )
 }
@@ -34,14 +34,14 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 }
 
 resource "aws_iam_instance_profile" "ecs_instance" {
-  name = "${local.prefix}-ecs-instance-profile"
+  name = "${var.prefix}-ecs-instance-profile"
 
   role = aws_iam_role.ecs_instance.name
 }
 
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "${local.prefix}-ecs-task-role"
+  name = "${var.prefix}-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -56,15 +56,15 @@ resource "aws_iam_role" "ecs_task_role" {
     ]
   })
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-ecs-task-role"
+      Name = "${var.prefix}-ecs-task-role"
     }
   )
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${local.prefix}-ecs-task-execution-role"
+  name = "${var.prefix}-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -98,7 +98,7 @@ resource "aws_iam_role_policy_attachment" "secret_manager_task" {
 }
 
 resource "aws_iam_policy" "env_file_read" {
-  name = "${local.prefix}-env-file-read"
+  name = "${var.prefix}-env-file-read"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -109,20 +109,20 @@ resource "aws_iam_policy" "env_file_read" {
         Action = [
           "s3:GetObject",
         ]
-        Resource = ["${aws_s3_bucket.env_files.arn}/*"]
+        Resource = ["${var.env_bucket_arn}/*"]
       },
       {
         Sid      = "ListEnvBucket",
         Effect   = "Allow",
         Action   = "s3:ListBucket",
-        Resource = [aws_s3_bucket.env_files.arn]
+        Resource = [var.env_bucket_arn]
       }
     ]
   })
 }
 
 resource "aws_iam_policy" "app_storage" {
-  name = "${local.prefix}-app-storage"
+  name = "${var.prefix}-app-storage"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -135,13 +135,13 @@ resource "aws_iam_policy" "app_storage" {
           "s3:PutObject",
           "s3:DeleteObject",
         ]
-        Resource = ["${aws_s3_bucket.app_storage.arn}/*"]
+        Resource = ["${var.app_storage_bucket_arn}/*"]
       },
       {
         Sid      = "ListAppStorageBucket",
         Effect   = "Allow",
         Action   = "s3:ListBucket",
-        Resource = [aws_s3_bucket.app_storage.arn]
+        Resource = [var.app_storage_bucket_arn]
       }
     ]
   })
@@ -166,7 +166,7 @@ resource "aws_iam_role_policy_attachment" "task_exec_env_read" {
 
 
 resource "aws_iam_role" "github_deploy" {
-  name = "${local.prefix}-github-deploy"
+  name = "${var.prefix}-github-deploy"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -193,7 +193,7 @@ resource "aws_iam_role" "github_deploy" {
 }
 
 resource "aws_iam_policy" "github_deploy" {
-  name = "${local.prefix}-github-deploy"
+  name = "${var.prefix}-github-deploy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -222,7 +222,7 @@ resource "aws_iam_policy" "github_deploy" {
           "ecr:BatchGetImage"
         ]
 
-        Resource = aws_ecr_repository.web.arn
+        Resource = var.ecr_repo_arn
       },
 
       {

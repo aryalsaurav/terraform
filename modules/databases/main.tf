@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "main" {
-  name       = "${local.prefix}-db"
-  subnet_ids = values(module.vpc.private_subnet_ids)
+  name       = "${var.prefix}-db"
+  subnet_ids = values(var.private_subnets)
 }
 
 # resource "random_password" "postgres" {
@@ -9,8 +9,8 @@ resource "aws_db_subnet_group" "main" {
 # }
 
 # resource "aws_secretsmanager_secret" "postgres" {
-#     name = "${local.prefix}/postgres"
-#     tags = local.common_tags
+#     name = "${var.prefix}/postgres"
+#     tags = var.common_tags
 
 # }
 
@@ -24,7 +24,7 @@ resource "aws_db_subnet_group" "main" {
 
 
 resource "aws_db_instance" "postgres" {
-  identifier = "${local.prefix}-postgres"
+  identifier = "${var.prefix}-postgres"
 
   engine         = "postgres"
   engine_version = "18"
@@ -41,7 +41,7 @@ resource "aws_db_instance" "postgres" {
   manage_master_user_password = true
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  vpc_security_group_ids = [module.security.db_sg_id]
+  vpc_security_group_ids = [var.db_sg_id]
 
   publicly_accessible = false
   multi_az            = false
@@ -54,9 +54,9 @@ resource "aws_db_instance" "postgres" {
   apply_immediately = true
 
   tags = merge(
-    local.common_tags,
+    var.tags,
     {
-      Name = "${local.prefix}-postgres"
+      Name = "${var.prefix}-postgres"
     }
   )
 
@@ -65,16 +65,16 @@ resource "aws_db_instance" "postgres" {
 
 
 resource "aws_elasticache_subnet_group" "main" {
-  name       = "${local.prefix}-redis"
-  subnet_ids = values(module.vpc.private_subnet_ids)
+  name       = "${var.prefix}-redis"
+  subnet_ids = values(var.private_subnets)
 }
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id         = "${local.prefix}-redis"
+  cluster_id         = "${var.prefix}-redis"
   engine             = "redis"
   node_type          = "cache.t4g.micro"
   num_cache_nodes    = 1
   port               = 6379
   subnet_group_name  = aws_elasticache_subnet_group.main.name
-  security_group_ids = [module.security.redis_sg_id]
+  security_group_ids = [var.redis_sg_id]
 }
