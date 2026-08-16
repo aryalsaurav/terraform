@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "env_files" {
   bucket = "${var.prefix}-env-files"
+  force_destroy = true
 
   tags = merge(
     var.tags,
@@ -29,6 +30,7 @@ resource "aws_s3_bucket_acl" "env_files" {
 
 resource "aws_s3_bucket" "app_storage" {
   bucket = "${var.prefix}-app-storage"
+  force_destroy = true
 
   tags = merge(
     var.tags,
@@ -40,6 +42,7 @@ resource "aws_s3_bucket" "app_storage" {
 
 resource "aws_s3_bucket_ownership_controls" "app_storage" {
   bucket = aws_s3_bucket.app_storage.id
+  
 
   rule {
     object_ownership = "BucketOwnerPreferred"
@@ -61,9 +64,10 @@ resource "aws_s3_bucket_acl" "app_storage" {
 
 resource "aws_s3_bucket" "tf_state" {
   bucket = "${var.prefix}-terraform-state"
+  force_destroy = true
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 
   tags = merge(
